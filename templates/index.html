@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>照片设备识别器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .upload-section {
+            padding: 40px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .upload-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results {
+            display: none;
+            padding: 40px;
+            background: #f8f9ff;
+        }
+        
+        .result-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .result-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        .error {
+            background: #ffe6e6;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #d63031;
+        }
+        
+        .reset-btn {
+            background: #6c757d;
+            margin-left: 10px;
+        }
+        
+        .reset-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 照片设备识别器</h1>
+            <p>上传照片，识别拍摄设备信息</p>
+        </div>
+        
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">点击或拖拽照片到这里</div>
+                <div class="upload-hint">支持 JPG, PNG, TIFF 等格式，最大 16MB</div>
+                <input type="file" id="fileInput" accept="image/*">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">选择照片</button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在分析照片...</p>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="result-section">
+                <div class="result-title">📱 设备信息</div>
+                <div id="deviceInfo"></div>
+            </div>
+            
+            <div class="result-section">
+                <div class="result-title">🔧 技术参数</div>
+                <div id="technicalInfo"></div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn reset-btn" onclick="resetUpload()">重新上传</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadSection = document.getElementById('uploadSection');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        
+        // 拖拽上传功能
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+        
+        // 文件选择
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        // 处理文件上传
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件！');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // 显示加载状态
+            uploadSection.style.display = 'none';
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            
+            // 上传文件
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    displayError(data.error);
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                displayError('上传失败: ' + error.message);
+            });
+        }
+        
+        // 显示结果
+        function displayResults(data) {
+            const deviceInfo = document.getElementById('deviceInfo');
+            const technicalInfo = document.getElementById('technicalInfo');
+            
+            // 显示设备信息
+            deviceInfo.innerHTML = '';
+            if (Object.keys(data.device_info).length > 0) {
+                for (const [key, value] of Object.entries(data.device_info)) {
+                    deviceInfo.innerHTML += `
+                        <div class="info-item">
+                            <span class="info-label">${key}:</span>
+                            <span class="info-value">${value}</span>
+                        </div>
+                    `;
+                }
+            } else {
+                deviceInfo.innerHTML = '<p style="color: #666; text-align: center;">未找到设备信息</p>';
+            }
+            
+            // 显示技术信息
+            technicalInfo.innerHTML = '';
+            if (Object.keys(data.technical_info).length > 0) {
+                for (const [key, value] of Object.entries(data.technical_info)) {
+                    technicalInfo.innerHTML += `
+                        <div class="info-item">
+                            <span class="info-label">${key}:</span>
+                            <span class="info-value">${value}</span>
+                        </div>
+                    `;
+                }
+            } else {
+                technicalInfo.innerHTML = '<p style="color: #666; text-align: center;">未找到技术信息</p>';
+            }
+            
+            // 如果有错误信息，显示错误
+            if (data.error) {
+                results.innerHTML += `<div class="error">${data.error}</div>`;
+            }
+            
+            results.style.display = 'block';
+        }
+        
+        // 显示错误
+        function displayError(error) {
+            uploadSection.style.display = 'block';
+            uploadSection.innerHTML += `<div class="error">${error}</div>`;
+        }
+        
+        // 重置上传
+        function resetUpload() {
+            uploadSection.style.display = 'block';
+            loading.style.display = 'none';
+            results.style.display = 'none';
+            fileInput.value = '';
+            
+            // 移除可能的错误信息
+            const errors = uploadSection.querySelectorAll('.error');
+            errors.forEach(error => error.remove());
+        }
+    </script>
+</body>
+</html>

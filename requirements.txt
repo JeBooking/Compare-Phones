@@ -1,0 +1,7 @@
+Flask==2.3.3
+Pillow==10.0.1
+exifread==3.0.0
+Werkzeug==2.3.7
+
+# 可选依赖（用于创建演示图片）
+# piexif==1.1.3
