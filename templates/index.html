@@ -202,7 +202,7 @@
                 <div class="upload-text">点击或拖拽照片到这里</div>
                 <div class="upload-hint">支持 JPG, PNG, TIFF 等格式，最大 16MB</div>
                 <input type="file" id="fileInput" accept="image/*">
-                <button class="btn" onclick="document.getElementById('fileInput').click()">选择照片</button>
+                <button class="btn" onclick="clearErrors(); document.getElementById('fileInput').click()">选择照片</button>
             </div>
         </div>
         
@@ -267,10 +267,13 @@
                 alert('请选择图片文件！');
                 return;
             }
-            
+
+            // 清除之前的错误信息
+            clearErrors();
+
             const formData = new FormData();
             formData.append('file', file);
-            
+
             // 显示加载状态
             uploadSection.style.display = 'none';
             loading.style.display = 'block';
@@ -342,20 +345,37 @@
         
         // 显示错误
         function displayError(error) {
+            // 先清除之前的错误信息
+            const existingErrors = uploadSection.querySelectorAll('.error');
+            existingErrors.forEach(err => err.remove());
+
+            // 显示上传区域
             uploadSection.style.display = 'block';
-            uploadSection.innerHTML += `<div class="error">${error}</div>`;
+            loading.style.display = 'none';
+            results.style.display = 'none';
+
+            // 添加错误信息
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = error;
+            uploadSection.appendChild(errorDiv);
         }
         
+        // 清除错误信息
+        function clearErrors() {
+            const errors = document.querySelectorAll('.error');
+            errors.forEach(error => error.remove());
+        }
+
         // 重置上传
         function resetUpload() {
             uploadSection.style.display = 'block';
             loading.style.display = 'none';
             results.style.display = 'none';
             fileInput.value = '';
-            
-            // 移除可能的错误信息
-            const errors = uploadSection.querySelectorAll('.error');
-            errors.forEach(error => error.remove());
+
+            // 清除错误信息
+            clearErrors();
         }
     </script>
 </body>

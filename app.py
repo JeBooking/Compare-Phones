@@ -1,8 +1,6 @@
 from flask import Flask, request, render_template, jsonify, flash, redirect, url_for
 import os
-from werkzeug.utils import secure_filename
-from photo_analyzer import analyze_photo
-import tempfile
+from photo_analyzer import analyze_photo_from_stream
 from config import config
 
 app = Flask(__name__)
@@ -13,6 +11,7 @@ app.config.from_object(config[config_name])
 
 # 确保上传文件夹存在
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 
 def allowed_file(filename):
     """检查文件扩展名是否允许"""
@@ -37,18 +36,10 @@ def upload_file():
     
     if file and allowed_file(file.filename):
         try:
-            # 使用临时文件处理上传的图片
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-                file.save(temp_file.name)
-                
-                # 分析照片
-                result = analyze_photo(temp_file.name)
-                
-                # 删除临时文件
-                os.unlink(temp_file.name)
-                
-                return jsonify(result)
-                
+            # 直接从内存中分析文件，不保存到磁盘
+            result = analyze_photo_from_stream(file)
+            return jsonify(result)
+
         except Exception as e:
             return jsonify({'error': f'处理文件时出错: {str(e)}'}), 500
     
@@ -63,3 +54,5 @@ if __name__ == '__main__':
     app.run(debug=app.config['DEBUG'],
             host=app.config['HOST'],
             port=app.config['PORT'])
+
+
