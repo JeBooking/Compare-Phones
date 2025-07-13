@@ -5,6 +5,7 @@ import os
 import io
 from datetime import datetime
 from config import Config
+from exif_integrity_checker import check_exif_integrity
 
 # ==================== 主要分析函数 ====================
 
@@ -22,6 +23,7 @@ def analyze_photo_from_stream(file_stream):
         'success': False,
         'device_info': {},
         'technical_info': {},
+        'integrity_check': {},
         'error': None
     }
 
@@ -107,6 +109,20 @@ def analyze_photo_from_stream(file_stream):
         except Exception as e:
             print(f"获取图片基本信息时出错: {e}")
 
+        # 执行EXIF完整性检查（使用已解析的数据，避免重复解析）
+        try:
+            integrity_result = check_exif_integrity(pil_data, exifread_data)
+            result['integrity_check'] = integrity_result
+        except Exception as e:
+            print(f"EXIF完整性检查时出错: {e}")
+            result['integrity_check'] = {
+                'is_modified': False,
+                'confidence': 0.0,
+                'indicators': [],
+                'warnings': [f'完整性检查失败: {str(e)}'],
+                'details': {}
+            }
+
         result['device_info'] = device_info
         result['technical_info'] = technical_info
         result['success'] = True
@@ -134,6 +150,7 @@ def analyze_photo(image_path):
         'success': False,
         'device_info': {},
         'technical_info': {},
+        'integrity_check': {},
         'error': None
     }
     
@@ -212,7 +229,21 @@ def analyze_photo(image_path):
                     technical_info['颜色模式'] = img.mode
         except Exception as e:
             print(f"获取图片基本信息时出错: {e}")
-        
+
+        # 执行EXIF完整性检查（使用已解析的数据，避免重复解析）
+        try:
+            integrity_result = check_exif_integrity(pil_data, exifread_data)
+            result['integrity_check'] = integrity_result
+        except Exception as e:
+            print(f"EXIF完整性检查时出错: {e}")
+            result['integrity_check'] = {
+                'is_modified': False,
+                'confidence': 0.0,
+                'indicators': [],
+                'warnings': [f'完整性检查失败: {str(e)}'],
+                'details': {}
+            }
+
         result['device_info'] = device_info
         result['technical_info'] = technical_info
         result['success'] = True

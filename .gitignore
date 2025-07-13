@@ -1,1 +1,143 @@
-/.idea/git_toolbox_blame.xml
+# Python相关
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# 单元测试 / 覆盖率报告
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# 翻译
+*.mo
+*.pot
+
+# Django相关
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask相关
+instance/
+.webassets-cache
+
+# 环境变量
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE相关
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ==================== 项目特定文件 ====================
+
+# 上传的文件（保留目录但忽略内容）
+uploads/*
+!uploads/.gitkeep
+
+# 测试图片和媒体文件
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.tiff
+*.tif
+*.bmp
+*.webp
+*.raw
+*.cr2
+*.nef
+*.arw
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
+temp/
+tmp/
+
+# 配置文件（如果包含敏感信息）
+config_local.py
+.env.local
+.env.production
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# 备份文件
+*.bak
+*.backup
+
+# 系统文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows相关
+*.lnk
+
+# 性能分析文件
+*.prof
+
+# 打包文件
+*.zip
+*.tar.gz
+*.rar
+
+# 本地开发和测试文件
+local_*
+dev_*
+debug_*
+test_images/
+sample_photos/

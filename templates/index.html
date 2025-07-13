@@ -187,6 +187,70 @@
         .reset-btn:hover {
             background: #5a6268;
         }
+
+        .integrity-status {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .integrity-safe {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .integrity-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .integrity-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .integrity-indicators {
+            margin-top: 10px;
+        }
+
+        .integrity-indicator {
+            background: #f8f9fa;
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-radius: 3px;
+            border-left: 3px solid #ffc107;
+            font-size: 0.9em;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .confidence-low {
+            background: #28a745;
+        }
+
+        .confidence-medium {
+            background: #ffc107;
+        }
+
+        .confidence-high {
+            background: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -221,7 +285,12 @@
                 <div class="result-title">🔧 技术参数</div>
                 <div id="technicalInfo"></div>
             </div>
-            
+
+            <div class="result-section">
+                <div class="result-title">🔒 EXIF完整性检查</div>
+                <div id="integrityInfo"></div>
+            </div>
+
             <div style="text-align: center;">
                 <button class="btn reset-btn" onclick="resetUpload()">重新上传</button>
             </div>
@@ -304,7 +373,8 @@
         function displayResults(data) {
             const deviceInfo = document.getElementById('deviceInfo');
             const technicalInfo = document.getElementById('technicalInfo');
-            
+            const integrityInfo = document.getElementById('integrityInfo');
+
             // 显示设备信息
             deviceInfo.innerHTML = '';
             if (Object.keys(data.device_info).length > 0) {
@@ -319,7 +389,7 @@
             } else {
                 deviceInfo.innerHTML = '<p style="color: #666; text-align: center;">未找到设备信息</p>';
             }
-            
+
             // 显示技术信息
             technicalInfo.innerHTML = '';
             if (Object.keys(data.technical_info).length > 0) {
@@ -334,15 +404,78 @@
             } else {
                 technicalInfo.innerHTML = '<p style="color: #666; text-align: center;">未找到技术信息</p>';
             }
-            
+
+            // 显示EXIF完整性检查结果
+            displayIntegrityResults(integrityInfo, data.integrity_check);
+
             // 如果有错误信息，显示错误
             if (data.error) {
                 results.innerHTML += `<div class="error">${data.error}</div>`;
             }
-            
+
             results.style.display = 'block';
         }
         
+        // 显示EXIF完整性检查结果
+        function displayIntegrityResults(container, integrityData) {
+            if (!integrityData) {
+                container.innerHTML = '<p style="color: #666; text-align: center;">完整性检查不可用</p>';
+                return;
+            }
+
+            const confidence = integrityData.confidence || 0;
+            const isModified = integrityData.is_modified || false;
+            const indicators = integrityData.indicators || [];
+            const warnings = integrityData.warnings || [];
+
+            let statusClass = 'integrity-safe';
+            let statusText = '✅ EXIF数据完整';
+            let confidenceClass = 'confidence-low';
+
+            if (confidence > 0.7) {
+                statusClass = 'integrity-danger';
+                statusText = '⚠️ EXIF数据可能被修改';
+                confidenceClass = 'confidence-high';
+            } else if (confidence > 0.3) {
+                statusClass = 'integrity-warning';
+                statusText = '⚠️ EXIF数据存在异常';
+                confidenceClass = 'confidence-medium';
+            }
+
+            let html = `
+                <div class="integrity-status ${statusClass}">
+                    ${statusText}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">修改置信度:</span>
+                    <span class="info-value">${(confidence * 100).toFixed(1)}%</span>
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill ${confidenceClass}" style="width: ${confidence * 100}%"></div>
+                </div>
+            `;
+
+            if (indicators.length > 0) {
+                html += '<div class="integrity-indicators">';
+                html += '<strong>检测到的异常指标:</strong>';
+                indicators.forEach(indicator => {
+                    html += `<div class="integrity-indicator">• ${indicator}</div>`;
+                });
+                html += '</div>';
+            }
+
+            if (warnings.length > 0) {
+                html += '<div class="integrity-indicators">';
+                html += '<strong>警告信息:</strong>';
+                warnings.forEach(warning => {
+                    html += `<div class="integrity-indicator" style="border-left-color: #6c757d;">• ${warning}</div>`;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
         // 显示错误
         function displayError(error) {
             // 先清除之前的错误信息
